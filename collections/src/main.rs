@@ -1,7 +1,10 @@
 use std::collections::HashMap;
+use std::io;
 
 fn main() {
     assorted_values();
+    pig_latin("test");
+    sim_company();
 }
 
 fn assorted_values() {
@@ -48,4 +51,96 @@ fn assorted_values() {
 
     println!("the most frequent number is {}", most[0]);
 
+}
+
+fn pig_latin(input: &str) {
+    let vowels = ['a', 'e', 'y', 'o', 'u'];
+
+    let mut is_vowel = false;
+    for c in input.chars() {
+         is_vowel = match vowels.iter().find(|&&x| x == c) {
+             Some(_value) => true,
+             None => false
+         };
+         break;
+    }
+
+    let mut strng: String;
+    if is_vowel {
+        strng = String::from(input) + "hay";
+    } else {
+        strng = String::from(&input[1..]) + &input[0..1] + "ay";
+    }
+
+    println!("pig latin for {} is {}", input, strng);
+}
+
+fn sim_company() {
+    let mut departments: HashMap<String, Vec<String>> = HashMap::new();
+    loop {
+        let mut command = String::new();
+        println!("wait for user command");
+        io::stdin().read_line(&mut command).expect("An error happened");
+
+        let tokens = tokenize(&command);
+        let cmd = match tokens.get(0) {
+            Some(value) => value,
+            None => {
+                println!("malformed command {}", command);
+                continue;
+            }
+        };
+
+        match &cmd[..] {
+            "Add" => {
+                let employee = match tokens.get(1) {
+                    Some(value) => value,
+                    None => {
+                        println!("malformed command {}", command);
+                        continue;
+                    }
+                };
+
+                let department = match tokens.get(3) {
+                    Some(value) => value,
+                    None => {
+                        println!("malformed command {}", command);
+                        continue;
+                    }
+                };
+
+                let employees = departments.entry(department.to_string()).or_insert(Vec::new());
+                employees.push(employee.to_string());
+            },
+            "Show" => {
+                let department = match tokens.get(1) {
+                    Some(value) => value,
+                    None => {
+                        println!("malformed command {}", command);
+                        continue;
+                    }
+                };
+
+                let employees = departments.entry(department.to_string()).or_insert(Vec::new());
+                employees.sort();
+
+                for employee in employees {
+                    println!("Employee {}", employee);
+                }
+
+            },
+            "All" => {
+
+            },
+            _ => {
+                println!("malformed command {}", command);
+                continue;
+            }
+        };
+    }
+}
+
+fn tokenize(input: &String) -> Vec<String> {
+    let split = input.split_whitespace();
+    return split.map(|val| String::from(val)).collect();
 }
